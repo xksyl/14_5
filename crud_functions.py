@@ -46,15 +46,18 @@ def add_users(username, email, age):
     INSERT INTO Users (username, email, age, balance)
         VALUES (?, ?, ?, 1000) ''', (username, email, age))
 
+
     connection.commit()
     connection.close()
+
 
 def is_included(username):
     connection = sqlite3.connect('Products.db')
     cursor = connection.cursor()
 
-    cursor.execute('SELECT COUNT * FROM Users WHERE username = ?', (username))
+    cursor.execute('SELECT COUNT(*) FROM Users WHERE username = ?', (username,))
     result = cursor.fetchone()
+
     connection.close()
     return result[0] > 0
 
