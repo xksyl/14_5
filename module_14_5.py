@@ -4,7 +4,8 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from crud_functions import add_users, initiate_db,  get_all_products
+from crud_functions import add_users, initiate_db,  get_all_products, is_included
+import re
 api = '7843231576:AAGDIFmQfGRmLpzQ4OG-dTXHeT5rR1JhJ58'
 bot = Bot(token=api)
 dp = Dispatcher(bot, storage=MemoryStorage())
@@ -38,6 +39,10 @@ class RegistrationState(StatesGroup):
     age = State()
     balance = State()
 
+def lat_let(username):
+    return bool(re.match('^[a-zA-Z]+$', username))
+
+
 @dp.message_handler(text='Регистрация')
 async def reg(message):
     await message.answer('Введите имя пользователя (только латинский алфавит):')
@@ -45,9 +50,20 @@ async def reg(message):
 
 @dp.message_handler(state=RegistrationState.username)
 async def set_username(message, state: FSMContext):
+    if not lat_let(message.text):
+        await message.answer(
+            "Ошибка: Имя пользователя должно содержать только латинские буквы. Попробуйте снова."
+        )
+        return
+
+    if is_included(message.text):
+        await message.answer('Этот пользователь уже зарегистрирован.')
+        return
+
     await state.update_data(username=message.text)
     await message.answer('Введите ваш email:')
     await RegistrationState.email.set()
+
 
 @dp.message_handler(state=RegistrationState.email)
 async def set_email(message, state: FSMContext):
